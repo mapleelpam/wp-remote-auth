@@ -1,0 +1,72 @@
+<?php
+/*
+ * Plugin Name: Remote Auth
+ * Plugin URI: http://auth.nctucs.net/
+ * Description: Wordpress plugin for Software Authication
+ * Version: 1.0
+ * Author: Heron Yang
+ * Author URI: http://heron.nctucs.net
+ * License: *
+ * */
+
+/* includes */
+include('build_menu.php');
+
+/* variable */
+global $wpdb, $db_ver, $table_name;
+
+$plugin_name	= "auth";
+$db_ver			= "1.0";
+$table_name		= $wpdb->prefix . $plugin_name;
+$installed_ver	= get_option( "db_ver" );
+
+// sql code for creating table in database
+$create_table_sql = "CREATE TABLE $table_name (
+	id mediumint(9) NOT NULL AUTO_INCREMENT,
+	time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+	user_email text NOT NULL,
+	device_str text NOT NULL,
+	UNIQUE KEY id (id)
+);";
+
+
+/* functions */
+
+// build the table
+function build_table() {
+	global $wpdb, $create_table_sql, $db_ver;
+
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	dbDelta( $create_table_sql );
+
+	add_option( "db_ver", $db_ver );
+}
+
+// insert things
+/*
+function build_table_data() {
+	global $wpdb, $table_name, $user_email;
+	$table_name = $wpdb->prefix . "auth";
+	$rows_affected = $wpdb->insert( $table_name, array( 'time' => current_time('mysql'), 'user_email' => $user_email, 'device_str' => "abcdefg" ) );
+}
+ */
+
+
+if( $installed_ver != $db_ver )	build_table();
+
+
+function update_check() {
+	global $db_ver;
+	//if (get_site_option( 'db_ver' ) != $db_ver)	build_table();
+	build_table();
+}
+
+// hook up
+register_activation_hook( __FILE__, 'build_table' );
+// register_activation_hook( __FILE__, 'build_table_data' );	// for debug
+
+// whenever loaded
+add_action( 'plugins_loaded', 'update_check' );
+
+// build the menu in admin page
+build_menu();
