@@ -10,6 +10,8 @@
  * heron 2013
  */
 
+// *** add login IP
+
 /* Debug */
 //ini_set('display_errors', 'On');
 //error_reporting(E_ALL);
@@ -124,9 +126,30 @@ default:
 	$user = wp_signon('', $secure_cookie);
 
 	if ( !is_wp_error($user) && !$reauth ) {
+		global $wpdb, $table_name;
 		// if sucees
-		echo "SUCCESS\n";		// *********************** //
+		$device_str = $_POST['device_str'];
+		$user_email = $_POST['log'];
+
+		$rows = $wpdb->get_results( 
+			"
+			SELECT *
+			FROM wp_auth
+			WHERE user_email = '$user_email'
+			AND device_str = '$device_str'
+			"
+		);
+
+		if (count($rows) != 0) {
+			echo "1";	// SUCCESS
+		}
+		else {
+			echo "2";	// right account, but wrong device str
+		}
 		exit();
+	}
+	else {
+		echo "0";		// FAIL to Login
 	}
 
 	$errors = $user;
