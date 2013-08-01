@@ -20,6 +20,7 @@
 /* Include WP code */
 //require( dirname(__FILE__) . '/wp-load.php' );
 require( '../../../wp-load.php' );
+require_once( 'constants.php' );
 
 /* Redirect to https login if forced to use SSL */
 if ( force_ssl_admin() && ! is_ssl() ) {
@@ -43,7 +44,8 @@ function login_header($title = 'Log In', $message = '', $wp_error = '') {
 	do_action( 'login_head' );
 
 	// output message, error, wp_error
-	echo $wp_error->get_error_code()."\n";
+	// turn off to clean the output
+	//echo $wp_error->get_error_code()."\n";
 }
 
 /* Footer Part */
@@ -126,30 +128,57 @@ default:
 	$user = wp_signon('', $secure_cookie);
 
 	if ( !is_wp_error($user) && !$reauth ) {
-		global $wpdb, $table_name;
+		global $wpdb;
 		// if sucees
 		$device_str = $_POST['device_str'];
 		$user_email = $_POST['log'];
 
+		echo TABLE_DEVICE_STR;
+		print_r($_POST);
 		$rows = $wpdb->get_results( 
 			"
 			SELECT *
-			FROM wp_auth
+			FROM ".TABLE_DEVICE_STR."
 			WHERE user_email = '$user_email'
 			AND device_str = '$device_str'
 			"
 		);
 
-		if (count($rows) != 0) {
-			echo "1";	// SUCCESS
+		if (count($rows)==0){
+			// #1. create new device
+			add_new_device($user_email, $device_str);
+			$response_str = response_str($device_str);
+			echo json_encode(array("1", "New Device Login", $response_str));
+			exit();
 		}
-		else {
-			echo "2";	// right account, but wrong device str
+
+		foreach ($rows as $row){
+			$disable	= $row->disable;
+			$userdelete	= $row->userdelete;
+			if ($disable == 1){
+				// #4, fail, device disabled
+				// do nothing
+				echo json_encode(array("4", "Failed, Device Disabled", ""));
+			}
+			else if ($userdelete == 1){
+				// #3, create new device
+				add_new_device($user_email, $device_str);
+				$response_str = response_str($device_str);
+				echo json_encode(array("3", "New Device Login", $response_str));
+			}
+			else {
+				// #2, success login using known device
+				// just login
+				$response_str = response_str($device_str);
+				echo json_encode(array("2", "Succes Login with Known Device", $response_str));
+			}
+			exit();
 		}
-		exit();
 	}
 	else {
-		echo "0";		// FAIL to Login
+		// #0. fail to Login
+		echo json_encode(array("0", "Wrong Username or Password", ""));
+		exit();
 	}
 
 	$errors = $user;
@@ -172,10 +201,36 @@ default:
 
 	// output result
 	login_header(__('Log In'), '', $errors);	// header part
-	login_footer();								// footer part
+	// login_footer();							// footer part, no need to simple c++ usage
 	break;
 
 } // end action switch
+
+
+function add_new_device($user_email, $device_str){
+	global $wpdb;
+	$mac = get_mac_from_device_str($device_str);
+	$wpdb->insert( TABLE_DEVICE_STR,
+		array( 'time'	=> current_time('mysql'),
+		'user_email'	=> $user_email,
+		'device_str'	=> $device_str,
+		'mac'			=> $mac,
+		'disable'		=> 0,
+		'userdelete'	=> 0
+	));
+}
+
+function response_str($device_str){
+	exec("./LicManager/DeviceInfoManager/device_info_manager -d $device_str", $response);
+	print_r($response);
+	return "$response[0]";
+}
+
+function get_mac_from_device_str($device_str){
+	exec("./LicManager/DeviceInfoManager/device_info_manager -d $device_str", $response);
+	print_r($response);
+	return $response[0];
+}
 
 // end
 ?>
