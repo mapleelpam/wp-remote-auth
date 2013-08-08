@@ -11,7 +11,7 @@ function auth_add_page() {
 	// Add a new submenu under Settings:
 	add_options_page(__('Auth Settings','auth'),
 		__('Auth Settings','auth'),
-		'manage_options',
+		'edit_posts',
 		'authsettings',
 		'settings_page'
 	);
@@ -39,7 +39,7 @@ function auth_add_page() {
 	add_submenu_page('top-level-handle',
 		__('[Admin] Device List','auth'),
 		__('[Admin] Device List','activate_plugins'),
-		'manage_options',
+		'edit_posts',
 		'sub-page2',
 		'device_list_admin'
 	);
@@ -104,6 +104,7 @@ function device_list_personal() {
 	echo '<td>Disable?</td>';
 	echo '<td></td>';
 	echo '<td></td>';
+	echo '<td></td>';
 	echo "</tr>";
 
 	foreach ($rows as $row) {
@@ -128,8 +129,9 @@ function device_list_personal() {
 			echo "NO";
 		echo "</td>";
 
-		echo '<td><form action="../wp-content/plugins/auth/disable.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Disable"/></form></td>';	// userdelete
-		echo '<td><form action="../wp-content/plugins/auth/userdelete.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Delete"/></form></td>';	// userdelete
+		echo '<td><form action="../wp-content/plugins/auth/disable.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Disable"/></form></td>';
+		echo '<td><form action="../wp-content/plugins/auth/enable.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Enable"/></form></td>';
+		echo '<td><form action="../wp-content/plugins/auth/userdelete.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Delete"/></form></td>';
 
 		echo "</tr>";
 	}

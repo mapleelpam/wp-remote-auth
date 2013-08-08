@@ -72,7 +72,7 @@ function build_table() {
 register_activation_hook( __FILE__, 'build_table' );
 
 // whenever loaded
-add_action( 'plugins_loaded', 'build_table' );
+//add_action( 'plugins_loaded', 'build_table' );
 
 // build the menu in admin page
 build_menu();

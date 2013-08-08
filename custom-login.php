@@ -132,39 +132,51 @@ default:
 		// if sucees
 		$device_str = $_POST['device_str'];
 		$user_email = $_POST['log'];
+		$mac = get_mac_from_device_str($device_str);
 
-		echo TABLE_DEVICE_STR;
-		print_r($_POST);
+		//echo TABLE_DEVICE_STR;
+		//print_r($_POST);
 		$rows = $wpdb->get_results( 
 			"
 			SELECT *
 			FROM ".TABLE_DEVICE_STR."
 			WHERE user_email = '$user_email'
-			AND device_str = '$device_str'
+			AND mac = '$mac'
+			AND userdelete = 0
 			"
 		);
 
 		if (count($rows)==0){
-			// #1. create new device
-			add_new_device($user_email, $device_str);
-			$response_str = response_str($device_str);
-			echo json_encode(array("1", "New Device Login", $response_str));
+			// check if is over the limit
+			$existing = $wpdb->get_results( 
+				"
+				SELECT *
+				FROM ".TABLE_DEVICE_STR."
+				WHERE user_email = '$user_email'
+				AND userdelete = 0
+				AND disable = 0
+				"
+			);
+			if (count($existing) >= MAX_DEVICES_NUMBER){
+				// #5, if the number of devices if full already for this user
+				echo json_encode(array("5", "Number of Devices is Full", ""));
+			} else {
+				// #1. create new device
+				add_new_device($user_email, $device_str);
+				$response_str = response_str($device_str);
+				echo json_encode(array("1", "New Device Login", $response_str));
+			}
 			exit();
 		}
 
 		foreach ($rows as $row){
 			$disable	= $row->disable;
 			$userdelete	= $row->userdelete;
+
 			if ($disable == 1){
 				// #4, fail, device disabled
 				// do nothing
 				echo json_encode(array("4", "Failed, Device Disabled", ""));
-			}
-			else if ($userdelete == 1){
-				// #3, create new device
-				add_new_device($user_email, $device_str);
-				$response_str = response_str($device_str);
-				echo json_encode(array("3", "New Device Login", $response_str));
 			}
 			else {
 				// #2, success login using known device
@@ -210,6 +222,7 @@ default:
 function add_new_device($user_email, $device_str){
 	global $wpdb;
 	$mac = get_mac_from_device_str($device_str);
+
 	$wpdb->insert( TABLE_DEVICE_STR,
 		array( 'time'	=> current_time('mysql'),
 		'user_email'	=> $user_email,
@@ -221,15 +234,13 @@ function add_new_device($user_email, $device_str){
 }
 
 function response_str($device_str){
-	exec("./LicManager/DeviceInfoManager/device_info_manager -d $device_str", $response);
-	print_r($response);
+	exec("./LicManager/DeviceInfoManager/device_info_manager -l $device_str", $response);
 	return "$response[0]";
 }
 
 function get_mac_from_device_str($device_str){
 	exec("./LicManager/DeviceInfoManager/device_info_manager -d $device_str", $response);
-	print_r($response);
-	return $response[0];
+	return $response[1];
 }
 
 // end
