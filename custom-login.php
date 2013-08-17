@@ -159,12 +159,12 @@ default:
 			);
 			if (count($existing) >= MAX_DEVICES_NUMBER){
 				// #5, if the number of devices if full already for this user
-				echo json_encode(array("5", "Number of Devices is Full", ""));
+				echo json_encode(array("ID" => "5", "Message" => "Number of Devices is Full", ""));
 			} else {
 				// #1. create new device
 				add_new_device($user_email, $device_str);
 				$response_str = response_str($device_str);
-				echo json_encode(array("1", "New Device Login", $response_str));
+				echo json_encode(array("ID" => "1", "Message" => "New Device Login", "License" => $response_str));
 			}
 			exit();
 		}
@@ -176,20 +176,20 @@ default:
 			if ($disable == 1){
 				// #4, fail, device disabled
 				// do nothing
-				echo json_encode(array("4", "Failed, Device Disabled", ""));
+				echo json_encode(array("ID" => "4", "Message" =>"Failed, Device Disabled", ""));
 			}
 			else {
 				// #2, success login using known device
 				// just login
 				$response_str = response_str($device_str);
-				echo json_encode(array("2", "Succes Login with Known Device", $response_str));
+				echo json_encode(array("ID" => "2", "Message" => "Succes Login with Known Device", "License" => $response_str));
 			}
 			exit();
 		}
 	}
 	else {
 		// #0. fail to Login
-		echo json_encode(array("0", "Wrong Username or Password", ""));
+		echo json_encode(array("ID" => "0", "Message" => "Wrong Username or Password", ""));
 		exit();
 	}
 
@@ -234,12 +234,12 @@ function add_new_device($user_email, $device_str){
 }
 
 function response_str($device_str){
-	exec("./LicManager/DeviceInfoManager/device_info_manager -l $device_str", $response);
+	exec("./bin/device_info_manager -l $device_str", $response);
 	return "$response[0]";
 }
 
 function get_mac_from_device_str($device_str){
-	exec("./LicManager/DeviceInfoManager/device_info_manager -d $device_str", $response);
+	exec("./bin/device_info_manager -d $device_str", $response);
 	return $response[1];
 }
 

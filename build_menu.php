@@ -75,7 +75,6 @@ function toplevel_page() {
 
 	echo "<h3>Introduction</h3>";
 	echo "<p>This plugin is for Software Authication.</p>";
-	echo '<p>* In order to force users login by using email, <a href="http://wordpress.org/plugins/force-email-login/">this plugin</a> is recommended.</p>';
 
 }
 
@@ -95,47 +94,53 @@ function device_list_personal() {
 		"
 	);
 
-	echo '<table border="1" >';
-
-	echo "<tr>";
-	echo "<td>Time</td>";
-	echo "<td>User Email</td>";
-	echo "<td>MAC Address</td>";
-	echo '<td>Disable?</td>';
-	echo '<td></td>';
-	echo '<td></td>';
-	echo '<td></td>';
-	echo "</tr>";
-
-	foreach ($rows as $row) {
-		echo "<tr>";
-
-		echo "<td>";
-		echo $row -> time;
-		echo "</td>";
-
-		echo "<td>";
-		echo $row -> user_email;
-		echo "</td>";
-
-		echo "<td>";
-		echo $row -> mac;
-		echo "</td>";
-
-		echo "<td>";
-		if ($row -> disable == 1)
-			echo "YES";
-		else
-			echo "NO";
-		echo "</td>";
-
-		echo '<td><form action="../wp-content/plugins/auth/disable.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Disable"/></form></td>';
-		echo '<td><form action="../wp-content/plugins/auth/enable.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Enable"/></form></td>';
-		echo '<td><form action="../wp-content/plugins/auth/userdelete.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Delete"/></form></td>';
-
-		echo "</tr>";
+	if(count($rows) == 0) {
+		echo "<p>No Device Info / Never Register any machine</p>";
 	}
-	echo "</table>";
+	else {
+
+		echo '<table border="1" >';
+
+		echo "<tr>";
+		echo "<td>Time</td>";
+		echo "<td>User Email</td>";
+		echo "<td>MAC Address</td>";
+		echo '<td>Disable?</td>';
+		echo '<td></td>';
+		echo '<td></td>';
+		echo '<td></td>';
+		echo "</tr>";
+
+		foreach ($rows as $row) {
+			echo "<tr>";
+
+			echo "<td>";
+			echo $row -> time;
+			echo "</td>";
+
+			echo "<td>";
+			echo $row -> user_email;
+			echo "</td>";
+
+			echo "<td>";
+			echo $row -> mac;
+			echo "</td>";
+
+			echo "<td>";
+			if ($row -> disable == 1)
+				echo "YES";
+			else
+				echo "NO";
+			echo "</td>";
+
+			echo '<td><form action="../wp-content/plugins/auth/disable.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Disable"/></form></td>';
+			echo '<td><form action="../wp-content/plugins/auth/enable.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Enable"/></form></td>';
+			echo '<td><form action="../wp-content/plugins/auth/userdelete.php"><input type="hidden" name="id" value="'.$row->id.'"/><input type="submit" value="Delete"/></form></td>';
+
+			echo "</tr>";
+		}
+		echo "</table>";
+	}
 
 	//
 }
