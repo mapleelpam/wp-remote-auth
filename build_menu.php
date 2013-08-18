@@ -9,49 +9,60 @@ function build_menu() {
 
 function auth_add_page() {
 	// Add a new submenu under Settings:
+	/*
 	add_options_page(__('Auth Settings','auth'),
 		__('Auth Settings','auth'),
 		'edit_posts',
 		'authsettings',
 		'settings_page'
 	);
+	 */
 
 	// Add a new top-level menu (ill-advised):
 	add_menu_page(__('Auth','auth'),
 		__('Auth','auth'),
 		'read',
-		'top-level-handle',
-		'toplevel_page',
+		'vmap-auth-intro',
+		'vmap_auth_intro_layout',
 		plugins_url( 'images/icon.png', __FILE__ ),
 		6
 	);
 
-	// Add a submenu to the custom top-level menu:
-	add_submenu_page('top-level-handle',
-		__('[Personal] Device List','auth'),
-		__('[Personal] Device List','auth'),
+	add_submenu_page('vmap-auth-intro',
+		__('Device List','auth'),
+		__('Device List','auth'),
 		'read',
-		'sub-page',
-		'device_list_personal'
+		'device-list',
+		'device_list_layout'
 	);
 
-	// Add a second submenu to the custom top-level menu:
-	add_submenu_page('top-level-handle',
-		__('[Admin] Device List','auth'),
-		__('[Admin] Device List','activate_plugins'),
+	add_submenu_page('vmap-auth-intro',
+		__('Management Page','auth'),
+		__('Management Page','activate_plugins'),
 		'edit_posts',
-		'sub-page2',
-		'device_list_admin'
+		'reseller',
+		'reseller_layout'
+	);
+
+	// 
+	add_submenu_page('vmap-auth-intro',
+		__('Administration','auth'),
+		__('Administration','activate_plugins'),
+		'update_core',
+		'admin',
+		'admin_layout'
 	);
 }
 
 // Setting Page Layout
+/*
 function settings_page() {
 	echo "<h2>" . __( 'Auth - Settings', 'auth' ) . "</h2>";
 }
+ */
 
 // Top Level Page Layout
-function toplevel_page() {
+function vmap_auth_intro_layout() {
 
 	global $wpdb, $user_email;
 
@@ -79,7 +90,7 @@ function toplevel_page() {
 }
 
 // Device List for General Users Page Layout
-function device_list_personal() {
+function device_list_layout() {
 	echo "<h2>" . __( 'Auth - Device List - for General Users', 'auth' ) . "</h2>";
 
 	global $wpdb, $user_email;
@@ -146,8 +157,8 @@ function device_list_personal() {
 }
 
 // Device List for Administrators Page Layout
-function device_list_admin(){
-	echo "<h2>" . __( 'Auth - Device List - for Administrators', 'auth' ) . "</h2>";
+function reseller_layout(){
+	echo "<h2>" . __( 'Auth - Device List - for Resellers', 'auth' ) . "</h2>";
 
 	global $table_name, $wpdb, $user_email;
 
@@ -170,6 +181,88 @@ function device_list_admin(){
 
 	echo "<h3>My Reseller Group List</h3>";
 	echo "<p>number of groups: ".count($rows)."</p>";
+
+	foreach ($rows as $row) {
+
+		$reseller_group = $row -> reseller_group;
+
+		echo "<h2>".$reseller_group."</h2>";
+
+		$user_list = $wpdb->get_results( 
+			"
+			SELECT *
+			FROM ".TABLE_USER_STATUS."
+			WHERE reseller_group = '$reseller_group'
+			"
+		);
+
+		// build table for single reseller group
+		if (count($user_list) != 0) {
+			echo '<table border="1" >';
+			echo "<tr>";
+			echo "<td>User Email</td>";
+			echo '<td>Status</td>';
+			echo "<td>MAC</td>";
+			echo "<td>Disable?</td>";
+			echo "<td>User Delete?</td>";
+			echo "</tr>";
+
+			foreach ($user_list as $user) {
+				echo "<tr>";
+
+				echo "<td>".$user->user_email."</td>";
+				echo "<td>".$user->status."</td>";
+
+				echo "<td>-</td><td>-</td><td>-</td></tr>";
+
+
+				// single device
+				$user_email = $user->user_email;
+				$device_list = $wpdb->get_results( 
+					"
+					SELECT *
+					FROM ".TABLE_DEVICE_STR."
+					WHERE user_email = '$user_email'
+					"
+				);
+				foreach ($device_list as $device) {
+					echo "<tr>";
+					echo "<td></td><td></td>";
+					echo "<td>".$device->mac."</td>";
+					if($device->disable==1)		echo "<td>YES</td>";
+					else						echo "<td>NO</td>";
+					if($device->userdelete==1)	echo "<td>YES</td>";
+					else						echo "<td>NO</td>";
+					echo "</tr>";
+				}
+				
+			}
+			echo "</table>";
+		}
+		else {
+			echo "Empty";
+		}
+	}
+
+}
+
+
+
+function admin_layout(){
+	echo "<h2>" . __( 'Auth - Device List - for Admin', 'auth' ) . "</h2>";
+
+	global $table_name, $wpdb, $user_email;
+
+	// display all
+	$rows = $wpdb->get_results( 
+		"
+		SELECT *
+		FROM ".TABLE_RESELLER_GROUPS."
+		"
+	);
+
+
+	echo "<p>number of all groups: ".count($rows)."</p>";
 
 	foreach ($rows as $row) {
 
