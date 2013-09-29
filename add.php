@@ -18,12 +18,12 @@ $rows = $wpdb->get_results(
 
 if (sizeof($rows) >= $LIMIT_DEVICE_NUMBER) {
 	echo "<p>It's already over $LIMIT_DEVICE_NUMBER devices, you can't add more!</p>";
-	echo '<p><a href="../../../wp-admin/admin.php?page=sub-page">Go Back</a></p>';
+	echo '<p><a href="../../../wp-admin/admin.php?page=device-list">Go Back</a></p>';
 }
 
 else {
 	$rows_affected = $wpdb->insert( $table_name, array( 'time' => current_time('mysql'), 'user_email' => $_GET['user_email'], 'device_str' => $_GET['device_str'] ) );
-	header('Location: ../../../wp-admin/admin.php?page=sub-page');
+	header('Location: ../../../wp-admin/admin.php?page=device-list');
 }
 
 ?>

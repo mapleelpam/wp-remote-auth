@@ -132,7 +132,24 @@ default:
 		// if sucees
 		$device_str = $_POST['device_str'];
 		$user_email = $_POST['log'];
-		$mac = get_mac_from_device_str($device_str);
+        $device = get_mac_from_device_str($device_str);
+
+        $mac        = $device[0];
+        $hostname   = $device[1];
+        $username   = $device[2];
+
+		// check if the account is in any reseller group
+		$rows = $wpdb->get_results( 
+			"
+			SELECT *
+			FROM ".TABLE_USER_STATUS."
+			WHERE user_email = '$user_email'
+			"
+		);
+		if (count($rows) == 0) {
+			echo json_encode(array("ID" => "6", "Message" => "Your Account is Not Valid", ""));
+			exit();
+		}
 
 		//echo TABLE_DEVICE_STR;
 		//print_r($_POST);
@@ -221,13 +238,20 @@ default:
 
 function add_new_device($user_email, $device_str){
 	global $wpdb;
-	$mac = get_mac_from_device_str($device_str);
+
+    $device = get_mac_from_device_str($device_str);
+
+    $mac        = $device[0];
+    $hostname   = $device[1];
+    $username   = $device[2];
 
 	$wpdb->insert( TABLE_DEVICE_STR,
 		array( 'time'	=> current_time('mysql'),
 		'user_email'	=> $user_email,
 		'device_str'	=> $device_str,
 		'mac'			=> $mac,
+        'hostname'      => $hostname,
+        'username'      => $username,
 		'disable'		=> 0,
 		'userdelete'	=> 0
 	));
@@ -239,8 +263,9 @@ function response_str($device_str){
 }
 
 function get_mac_from_device_str($device_str){
+    //echo "device >> $device_str";
 	exec("./bin/device_info_manager -d $device_str", $response);
-	return $response[1];
+	return $response;
 }
 
 // end

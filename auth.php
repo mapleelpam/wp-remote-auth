@@ -50,6 +50,12 @@ $create_table_user_status = "CREATE TABLE ".TABLE_USER_STATUS." (
 	`status`			TINYINT UNSIGNED NOT NULL,
 	UNIQUE KEY id (id)
 );";
+$create_table_uuid = "CREATE TABLE ".TABLE_UUID." (
+	`time`				DATETIME DEFAULT '0000-00-00 00:00:00' NOT NULL,
+	`expire_time`		DATETIME DEFAULT '0000-00-00 00:00:00' NOT NULL,
+	`user_email`		TEXT NOT NULL,
+	`uuid`				TEXT NOT NULL
+);";
 
 
 /* functions */

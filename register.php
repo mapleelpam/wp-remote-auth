@@ -23,7 +23,10 @@ echo "reset your password:";
 
 ?>
 <form method="post" action="set_password.php">
+    <label>New Password</label>
 	<input type="password" name="password"><br>
+    <label>Retype Password</label>
+	<input type="password" name="confirm_password"><br>
 	<input type="hidden" name="uuid" value="<?php echo $uuid; ?>"><br>
 	<input type="submit" name="submit" value="Submit"><br>
 </form>

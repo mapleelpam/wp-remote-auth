@@ -12,9 +12,10 @@ $wpdb->query(
 		SET userdelete=1
 		WHERE id = '%s'
 		",
-		$_GET['id'] 
+		$_POST['id'] 
 	)
 );
 
-header('Location: ../../../wp-admin/admin.php?page=device-list');
+echo "<script>alert('Action Submitted! Please login again.'); location.href='../../../?page_id=48';</script>";
+exit;
 ?>

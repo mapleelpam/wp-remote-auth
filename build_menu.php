@@ -19,8 +19,8 @@ function auth_add_page() {
 	 */
 
 	// Add a new top-level menu (ill-advised):
-	add_menu_page(__('Auth','auth'),
-		__('Auth','auth'),
+	add_menu_page(__('VMap','auth'),
+		__('VMap','auth'),
 		'read',
 		'vmap-auth-intro',
 		'vmap_auth_intro_layout',
@@ -42,6 +42,14 @@ function auth_add_page() {
 		'edit_posts',
 		'reseller',
 		'reseller_layout'
+	);
+
+	add_submenu_page('vmap-auth-intro',
+		__('Add New Customer','auth'),
+		__('Add New Customer','activate_plugins'),
+		'edit_posts',
+		'add_new_customer',
+		'add_new_customer'
 	);
 
 	// 
@@ -91,9 +99,22 @@ function vmap_auth_intro_layout() {
 
 // Device List for General Users Page Layout
 function device_list_layout() {
-	echo "<h2>" . __( 'Auth - Device List - for General Users', 'auth' ) . "</h2>";
+	echo "<h2>" . __( 'Auth - Device List - for Customers', 'auth' ) . "</h2>";
 
 	global $wpdb, $user_email;
+
+	$rows = $wpdb->get_results( 
+		"
+		SELECT *
+		FROM ".TABLE_USER_STATUS."
+		WHERE user_email = '$user_email'
+		"
+	);
+	if (count($rows) == 0) {
+		// error
+		echo "<p>your account is invalid yet</p>";
+		return;
+	}
 
 	// display list
 	$rows = $wpdb->get_results( 
@@ -167,6 +188,7 @@ function reseller_layout(){
 		<input type="hidden" name="disty_email" value="'.$user_email.'"/>
 		<input placeholder="User Email" name="user_email" type="text"/>
 		<input placeholder="Reseller Group" name="reseller_group" type="text"/>
+		<label><input type="checkbox" name="email_notification" checked value="true" />Email Notification?</label>
 		<input type="submit" value="add"/></form>';
 
 	// display all
@@ -205,6 +227,7 @@ function reseller_layout(){
 			echo "<td>MAC</td>";
 			echo "<td>Disable?</td>";
 			echo "<td>User Delete?</td>";
+			echo "<td>Password Set?</td>";
 			echo "</tr>";
 
 			foreach ($user_list as $user) {
@@ -213,7 +236,17 @@ function reseller_layout(){
 				echo "<td>".$user->user_email."</td>";
 				echo "<td>".$user->status."</td>";
 
-				echo "<td>-</td><td>-</td><td>-</td></tr>";
+                echo "<td>-</td><td>-</td><td>-</td>";
+                $uuid_list = $wpdb->get_results( 
+                    "
+                    SELECT *
+                    FROM ".TABLE_UUID."
+                    WHERE user_email = '$user->user_email'
+                    "
+                );
+                if(count($uuid_list) == 0)  echo "<td>YES</td>";
+                else                        echo "<td>NO</td>";
+                echo "</tr>";
 
 
 				// single device
@@ -233,6 +266,7 @@ function reseller_layout(){
 					else						echo "<td>NO</td>";
 					if($device->userdelete==1)	echo "<td>YES</td>";
 					else						echo "<td>NO</td>";
+                    echo "<td></td>";
 					echo "</tr>";
 				}
 				
@@ -249,7 +283,7 @@ function reseller_layout(){
 
 
 function admin_layout(){
-	echo "<h2>" . __( 'Auth - Device List - for Admin', 'auth' ) . "</h2>";
+	echo "<h2>" . __( 'Auth - Device List - for Admins', 'auth' ) . "</h2>";
 
 	global $table_name, $wpdb, $user_email;
 
@@ -267,8 +301,9 @@ function admin_layout(){
 	foreach ($rows as $row) {
 
 		$reseller_group = $row -> reseller_group;
+		$disty_email = $row -> disty_email;
 
-		echo "<h2>".$reseller_group."</h2>";
+		echo "<h2>".$reseller_group."</h2><h3>(".$disty_email.")</h3>";
 
 		$user_list = $wpdb->get_results( 
 			"
@@ -295,7 +330,9 @@ function admin_layout(){
 				echo "<td>".$user->user_email."</td>";
 				echo "<td>".$user->status."</td>";
 
-				echo "<td>-</td><td>-</td><td>-</td></tr>";
+                echo "<td>-</td><td>-</td><td>-</td>";
+
+                echo "</tr>";
 
 
 				// single device
@@ -328,4 +365,51 @@ function admin_layout(){
 
 }
 
+function add_new_customer(){
+	echo "<h2>" . __( 'Auth - Add New Customer - for Reseller', 'auth' ) . "</h2>";
+
+	global $table_name, $wpdb, $user_email;
+	// insert new form
+?>
+	<form action="../wp-content/plugins/auth/add_reseller_user.php" method="POST">
+		<input type="hidden" name="disty_email" value="<? echo $user_email;?>"/>
+		<table border="1">
+			<tr>
+				<td>Reseller Group</td>
+				<td><input placeholder="Reseller Group" name="reseller_group" type="text"/></td>
+			</tr>
+			<tr>
+				<td>User Email</td>
+				<td><input placeholder="example@example.com" name="user_email" type="text"/></td>
+			</tr>
+			<tr>
+				<td>User Name</td>
+				<td><input placeholder="example1234" name="user_name" type="text"/></td>
+			</tr>
+			<tr>
+				<td>First Name</td>
+				<td><input placeholder="Steve" name="first_name" type="text"/></td>
+			</tr>
+			<tr>
+				<td>Last Name</td>
+				<td><input placeholder="Jobs" name="last_name" type="text"/></td>
+			</tr>
+			<tr>
+				<td>Website</td>
+				<td><input placeholder="example.com" name="website" type="text"/></td>
+			</tr>
+			<tr>
+				<td>Email Notification?</td>
+				<td><input type="checkbox" name="email_notification" checked value="true" /></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><input type="submit" value="add"/></td>
+			</tr>
+
+		</table>
+	</form>
+<?php
+
+}
 ?>

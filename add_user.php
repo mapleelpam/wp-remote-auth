@@ -19,20 +19,32 @@ function send_email($user_email, $uuid){
 	$to      = $user_email;
 	$subject = 'VMap - First Login and Setup Password';
 	$message = "hello, please login and setup password here: http://auth.nctucs.net/wp-content/plugins/auth/register.php?uuid=$uuid";
-	$headers = 'From: webmaster@vmap.com' . "\r\n" .
-		    'Reply-To: webmaster@vmap.com' . "\r\n" .
-			'X-Mailer: PHP/' . phpversion();
+    $headers = 'From: webmaster@vmap.com' . "\r\n" .
+        'Cc: kenli@vmap-global.com, maple@vmap-global.com, v6510young88@gmail.com' . "\r\n" .
+        'Reply-To: webmaster@vmap.com' . "\r\n" .
+        'X-Mailer: PHP/' . phpversion();
 
 	mail($to, $subject, $message, $headers);
 
 	echo "mail send and done.";
-	echo "<script language=javascript> alert(\"Done.\");</scrip t>";
+	echo "<script language=javascript> alert(\"Done.\");</script>";
 }
 
 function insert_uuid_to_table($user_email, $uuid){
-	// add user
 	global $wpdb;
 
+    // delete the old record if exists
+    $wpdb->query(
+        $wpdb->prepare(
+            "
+            DELETE FROM ".TABLE_UUID."
+            WHERE user_email = '%s'
+            ",
+            $user_email
+        )
+    );
+
+	// add user
 	$current_time = current_time('mysql');
 	$expire_time_date = date_add(date_create($current_time),date_interval_create_from_date_string(LENGTH_OF_EXIPRE_TIME));
 	$expire_time = date_format($expire_time_date,"Y-m-d H:i:s");

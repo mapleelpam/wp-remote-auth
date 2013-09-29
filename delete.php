@@ -19,5 +19,5 @@ $wpdb->query(
 		$_GET['id'] 
 	)
 );
-header('Location: ../../../wp-admin/admin.php?page=sub-page');
+header('Location: ../../../wp-admin/admin.php?page=device-list');
 ?>

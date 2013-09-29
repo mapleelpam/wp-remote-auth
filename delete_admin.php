@@ -19,5 +19,5 @@ $wpdb->query(
 		$_GET['id'] 
 	)
 );
-header('Location: ../../../wp-admin/admin.php?page=sub-page2');
+header('Location: ../../../wp-admin/admin.php?page=reseller');
 ?>

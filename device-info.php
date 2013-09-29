@@ -32,8 +32,11 @@ function get_device_info_fram_email($user_email){
     $count = 0;
     foreach($rows as $row){
         $device_info_arr_single = array(
+            'id'            => $row->id,
             'time'          => $row->time,
             'mac'           => $row->mac,
+            'hostname'      => $row->hostname,
+            'username'      => $row->username,
             'disable'       => $row->disable,
             'userdelete'    => $row->userdelete
         );
